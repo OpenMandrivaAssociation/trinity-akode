@@ -1,6 +1,8 @@
-#
-# Please submit bugfixes or comments via http://www.trinitydesktop.org/
-#
+%bcond clang 1
+%bcond jack 1
+%bcond libsamplerate 1
+%bcond pulseaudio 1
+%bcond libmad 1
 
 # BUILD WARNING:
 #  Remove qt-devel and qt3-devel and any kde*-devel on your system !
@@ -11,6 +13,8 @@
 %if "%{?tde_version}" == ""
 %define tde_version 14.1.5
 %endif
+%define pkg_rel 2
+
 %define tde_pkg akode
 %define tde_prefix /opt/trinity
 %define tde_bindir %{tde_prefix}/bin
@@ -24,48 +28,54 @@
 %define tde_tdeincludedir %{tde_includedir}/tde
 %define tde_tdelibdir %{tde_libdir}/trinity
 
-%if 0%{?mdkversion} || 0%{?mgaversion} || 0%{?pclinuxos}
 %define libakode %{_lib}akode
-%else
-%define libakode libakode
-%endif
 
-%if 0%{?mdkversion}
 %undefine __brp_remove_la_files
 %define dont_remove_libtool_files 1
 %define _disable_rebuild_configure 1
-%endif
 
 # fixes error: Empty %files file …/debugsourcefiles.list
 %define _debugsource_template %{nil}
 
 %define tarball_name %{tde_pkg}-trinity
-%global toolchain %(readlink /usr/bin/cc)
 
 Name:		trinity-%{tde_pkg}
 Epoch:		%{tde_epoch}
 Version:	2.0.2
-Release:	%{?tde_version}_%{?!preversion:1}%{?preversion:0_%{preversion}}%{?dist}
+Release:	%{?tde_version}_%{?!preversion:%{pkg_rel}}%{?preversion:0_%{preversion}}%{?dist}
 Summary: 	Audio-decoding framework
 Group: 		System Environment/Libraries
 URL:		http://www.kde-apps.org/content/show.php?content=30375
 #URL:		http://carewolf.com/akode/  
 
-%if 0%{?suse_version}
-License:	GPL-2.0+
-%else
 License:	GPLv2+
-%endif
 
 Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{tde_version}/main/dependencies/%{tarball_name}-%{tde_version}%{?preversion:~%{preversion}}.tar.xz
 
 Prefix:		%{tde_prefix}
 
-BuildRequires:  cmake make
+BuildSystem:  cmake
+BuildOption:  -DCMAKE_BUILD_TYPE="RelWithDebInfo"
+BuildOption:  -DWITH_ALL_OPTIONS=ON
+BuildOption:  -DWITH_LIBLTDL=OFF
+BuildOption:  -DWITH_ALSA_SINK=ON
+BuildOption:  -DWITH_OSS_SINK=ON
+BuildOption:  -DWITH_SUN_SINK=OFF
+BuildOption:  -DWITH_FFMPEG_DECODER=OFF
+BuildOption:  -DWITH_MPC_DECODER=ON
+BuildOption:  -DWITH_SRC_RESAMPLER=ON
+BuildOption:  -DWITH_XIPH_DECODER=ON
+%{!?with_libmad:BuildOption:  -DWITH_MPEG_DECODER=OFF}
+%{?with_libmad:BuildOption:  -DWITH_MPEG_DECODER=ON}
+%{!?with_jack:BuildOption:  -DWITH_JACK_SINK=OFF} 
+%{?with_jack:BuildOption:  -DWITH_JACK_SINK=ON}
+%{!?with_pulseaudio:BuildOption:  -DWITH_PULSE_SINK=OFF} 
+%{?with_pulseaudio:BuildOption:  -DWITH_PULSE_SINK=ON}
+
 BuildRequires:	trinity-tde-cmake >= %{tde_version}
-%if "%{?toolchain}" != "clang"
-BuildRequires:  gcc-c++
-%endif
+
+%{!?with_clang:BuildRequires:  gcc-c++}
+
 BuildRequires:	libtool
 
 # TQT support
@@ -76,20 +86,16 @@ BuildRequires:	trinity-filesystem >= %{tde_version}
 BuildRequires:  pkgconfig(flac)
 
 # JACK support
-%define _with_jack 1
-BuildRequires:  pkgconfig(jack)
+%{?with_jack:BuildRequires:  pkgconfig(jack)}
 
 # SAMPLERATE support
-%define _with_libsamplerate 1
-BuildRequires:  pkgconfig(samplerate)
+%{?with_libsamplerate:BuildRequires:  pkgconfig(samplerate)}
 
 # PULSEAUDIO support
-%define _with_pulseaudio 1
-BuildRequires:  pkgconfig(libpulse)
+%{?with_pulseaudio:BuildRequires:  pkgconfig(libpulse)}
 
 # MAD support
-%define _with_libmad 1
-BuildRequires:  pkgconfig(mad)
+%{?with_libmad:BuildRequires:  pkgconfig(mad)}
 
 # ALSA support
 BuildRequires:  pkgconfig(alsa)
@@ -140,10 +146,10 @@ aKode also has the following audio outputs:
 Summary: Headers for developing programs that will use %{name} 
 Group:   Development/Libraries
 Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
-%{?_with_jack:Requires: %{libakode}_jack_sink = %{?epoch:%{epoch}:}%{version}-%{release}}
-%{?_with_pulseaudio:Requires: %{libakode}_pulse_sink = %{?epoch:%{epoch}:}%{version}-%{release}}
-%{?_with_libsamplerate:Requires: %{libakode}_src_resampler = %{?epoch:%{epoch}:}%{version}-%{release}}
-%{?_with_libmad:Requires: %{libakode}_mpeg_decoder  = %{?epoch:%{epoch}:}%{version}-%{release}}
+%{?with_jack:Requires: %{libakode}_jack_sink = %{?epoch:%{epoch}:}%{version}-%{release}}
+%{?with_pulseaudio:Requires: %{libakode}_pulse_sink = %{?epoch:%{epoch}:}%{version}-%{release}}
+%{?with_libsamplerate:Requires: %{libakode}_src_resampler = %{?epoch:%{epoch}:}%{version}-%{release}}
+%{?with_libmad:Requires: %{libakode}_mpeg_decoder  = %{?epoch:%{epoch}:}%{version}-%{release}}
 Requires: pkgconfig
 
 %description devel
@@ -253,57 +259,8 @@ This package contains the mad decoder for Akode.
 %postun -n %{libakode}_mpeg_decoder 
 /sbin/ldconfig
 
-##########
 
-%if 0%{?suse_version} && 0%{?opensuse_bs} == 0
-%debug_package
-%endif
-##########
-
-%prep
-%autosetup -n %{tarball_name}-%{tde_version}%{?preversion:~%{preversion}}
-
-
-%build
-unset QTDIR QTINC QTLIB
-
-if ! rpm -E %%cmake|grep -e 'cd build\|cd ${CMAKE_BUILD_DIR:-build}'; then
-  %__mkdir_p build
-  cd build
-fi
-
-%cmake \
-  -DCMAKE_BUILD_TYPE="RelWithDebInfo" \
-  -DCMAKE_C_FLAGS="${RPM_OPT_FLAGS}" \
-  -DCMAKE_CXX_FLAGS="${RPM_OPT_FLAGS}" \
-  -DCMAKE_SKIP_RPATH=ON \
-  -DCMAKE_VERBOSE_MAKEFILE=ON \
-  -DWITH_GCC_VISIBILITY=OFF \
-   \
-  -DINCLUDE_INSTALL_DIR=%{_includedir} \
-  -DLIB_INSTALL_DIR=%{_libdir} \
-  \
-  -DWITH_ALL_OPTIONS="ON" \
-  -DWITH_LIBLTDL="OFF" \
-  -DWITH_ALSA_SINK="ON" \
-  %{!?_with_jack:-DWITH_JACK_SINK="OFF"} %{?_with_jack:-DWITH_JACK_SINK="ON"} \
-  %{!?_with_pulseaudio:-DWITH_PULSE_SINK="OFF"} %{?_with_pulseaudio:-DWITH_PULSE_SINK="ON"} \
-  -DWITH_OSS_SINK="ON" \
-  -DWITH_SUN_SINK="OFF" \
-  \
-  -DWITH_FFMPEG_DECODER="OFF" \
-  -DWITH_MPC_DECODER="ON" \
-  %{!?_with_libmad:-DWITH_MPEG_DECODER="OFF"} %{?_with_libmad:-DWITH_MPEG_DECODER="ON"} \
-  -DWITH_SRC_RESAMPLER="ON" \
-  -DWITH_XIPH_DECODER="ON" \
-  ..
-
-%__make %{?_smp_mflags} || %__make
-
-
-%install
-%__make install DESTDIR=%{?buildroot} -C build
-
+%install -a
 # rpmdocs
 for file in AUTHORS COPYING NEWS README TODO ; do
   test -s  "$file" && install -p -m644 -D "$file" "rpmdocs/$file"
