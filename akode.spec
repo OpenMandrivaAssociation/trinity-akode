@@ -13,20 +13,9 @@
 %if "%{?tde_version}" == ""
 %define tde_version 14.1.5
 %endif
-%define pkg_rel 2
+%define pkg_rel 3
 
 %define tde_pkg akode
-%define tde_prefix /opt/trinity
-%define tde_bindir %{tde_prefix}/bin
-%define tde_datadir %{tde_prefix}/share
-%define tde_docdir %{tde_datadir}/doc
-%define tde_includedir %{tde_prefix}/include
-%define tde_libdir %{tde_prefix}/%{_lib}
-%define tde_mandir %{tde_datadir}/man
-%define tde_tdeappdir %{tde_datadir}/applications/tde
-%define tde_tdedocdir %{tde_docdir}/tde
-%define tde_tdeincludedir %{tde_includedir}/tde
-%define tde_tdelibdir %{tde_libdir}/trinity
 
 %define libakode %{_lib}akode
 
@@ -52,8 +41,6 @@ License:	GPLv2+
 
 Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{tde_version}/main/dependencies/%{tarball_name}-%{tde_version}%{?preversion:~%{preversion}}.tar.xz
 
-Prefix:		%{tde_prefix}
-
 BuildSystem:  cmake
 BuildOption:  -DCMAKE_BUILD_TYPE="RelWithDebInfo"
 BuildOption:  -DWITH_ALL_OPTIONS=ON
@@ -65,12 +52,9 @@ BuildOption:  -DWITH_FFMPEG_DECODER=OFF
 BuildOption:  -DWITH_MPC_DECODER=ON
 BuildOption:  -DWITH_SRC_RESAMPLER=ON
 BuildOption:  -DWITH_XIPH_DECODER=ON
-%{!?with_libmad:BuildOption:  -DWITH_MPEG_DECODER=OFF}
-%{?with_libmad:BuildOption:  -DWITH_MPEG_DECODER=ON}
-%{!?with_jack:BuildOption:  -DWITH_JACK_SINK=OFF} 
-%{?with_jack:BuildOption:  -DWITH_JACK_SINK=ON}
-%{!?with_pulseaudio:BuildOption:  -DWITH_PULSE_SINK=OFF} 
-%{?with_pulseaudio:BuildOption:  -DWITH_PULSE_SINK=ON}
+BuildOption:  -DWITH_MPEG_DECODER=%{!?with_libmad:OFF}%{?with_libmad:ON}
+BuildOption:  -DWITH_JACK_SINK=%{!?with_jack:OFF}%{?with_jack:ON}
+BuildOption:  -DWITH_PULSE_SINK=%{!?with_pulseaudio:OFF}%{?with_pulseaudio:ON}
 
 BuildRequires:	trinity-tde-cmake >= %{tde_version}
 
