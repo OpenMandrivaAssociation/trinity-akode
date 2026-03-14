@@ -4,20 +4,16 @@
 %bcond pulseaudio 1
 %bcond libmad 1
 
-# BUILD WARNING:
-#  Remove qt-devel and qt3-devel and any kde*-devel on your system !
-#  Having KDE libraries may cause FTBFS here !
-
 # TDE variables
 %define tde_epoch 2
 %if "%{?tde_version}" == ""
 %define tde_version 14.1.5
 %endif
-%define pkg_rel 4
 
 %define tde_pkg akode
 
-%define libakode %{_lib}akode
+%define libname %mklibname %{tde_pkg}
+%define devname %mklibname %{tde_pkg} -d
 
 %undefine __brp_remove_la_files
 %define dont_remove_libtool_files 1
@@ -31,7 +27,7 @@
 Name:		trinity-%{tde_pkg}
 Epoch:		%{tde_epoch}
 Version:	2.0.2
-Release:	%{?tde_version}_%{?!preversion:%{pkg_rel}}%{?preversion:0_%{preversion}}%{?dist}
+Release:	%{?tde_version:%{tde_version}_}5
 Summary: 	Audio-decoding framework
 Group: 		System Environment/Libraries
 URL:		http://www.kde-apps.org/content/show.php?content=30375
@@ -39,7 +35,7 @@ URL:		http://www.kde-apps.org/content/show.php?content=30375
 
 License:	GPLv2+
 
-Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{tde_version}/main/dependencies/%{tarball_name}-%{tde_version}%{?preversion:~%{preversion}}.tar.xz
+Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{tde_version}/main/dependencies/%{tarball_name}-%{tde_version}.tar.xz
 
 BuildSystem:  cmake
 
@@ -64,7 +60,7 @@ BuildRequires:	trinity-tde-cmake >= %{tde_version}
 BuildRequires:	libtool
 
 # TQT support
-BuildRequires:	libtqt4-devel
+BuildRequires:	pkgconfig(tqt)
 BuildRequires:	trinity-filesystem >= %{tde_version}
 
 # FLAC support
@@ -119,29 +115,23 @@ aKode also has the following audio outputs:
 %{_libdir}/libakode_xiph_decoder.la
 %{_libdir}/libakode_xiph_decoder.so
 
-%post
-/sbin/ldconfig
-
-%postun 
-/sbin/ldconfig
-
 ##########
 
-%package devel
+%package -n %{devname}
 Summary: Headers for developing programs that will use %{name} 
 Group:   Development/Libraries
 Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
-%{?with_jack:Requires: %{libakode}_jack_sink = %{?epoch:%{epoch}:}%{version}-%{release}}
-%{?with_pulseaudio:Requires: %{libakode}_pulse_sink = %{?epoch:%{epoch}:}%{version}-%{release}}
-%{?with_libsamplerate:Requires: %{libakode}_src_resampler = %{?epoch:%{epoch}:}%{version}-%{release}}
-%{?with_libmad:Requires: %{libakode}_mpeg_decoder  = %{?epoch:%{epoch}:}%{version}-%{release}}
+%{?with_jack:Requires: %{libname}_jack_sink = %{?epoch:%{epoch}:}%{version}-%{release}}
+%{?with_pulseaudio:Requires: %{libname}_pulse_sink = %{?epoch:%{epoch}:}%{version}-%{release}}
+%{?with_libsamplerate:Requires: %{libname}_src_resampler = %{?epoch:%{epoch}:}%{version}-%{release}}
+%{?with_libmad:Requires: %{libname}_mpeg_decoder  = %{?epoch:%{epoch}:}%{version}-%{release}}
 Requires: pkgconfig
 
-%description devel
+%description -n %{devname}
 This package contains the development files for Akode.
 It is needed if you intend to build an application linked against Akode.
 
-%files devel
+%files -n %{devname}
 %defattr(-,root,root,-)
 %{_bindir}/akode-config
 %{_includedir}/*
@@ -149,99 +139,79 @@ It is needed if you intend to build an application linked against Akode.
 %{_libdir}/libakode.so
 %{_libdir}/pkgconfig/akode.pc
 
-%post devel
-/sbin/ldconfig
-
-%postun devel
-/sbin/ldconfig
 
 ##########
-%package -n %{libakode}_jack_sink
+%package -n %{libname}_jack_sink
 Summary: Jack audio output backend for %{name}
 Group:   Development/Libraries
-Provides: libakode_jack_sink = %{version}-%{release}
+
 Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
 
-%description -n %{libakode}_jack_sink
+%description -n %{libname}_jack_sink
 This package contains the Jack audio output backend for Akode.
 
-%files -n %{libakode}_jack_sink
+%files -n %{libname}_jack_sink
 %defattr(-,root,root,-)
 %{_libdir}/libakode_jack_sink.la
 %{_libdir}/libakode_jack_sink.so
 
-%post -n %{libakode}_jack_sink
-/sbin/ldconfig
-
-%postun -n %{libakode}_jack_sink
-/sbin/ldconfig
 
 ##########
 
-%package -n %{libakode}_pulse_sink
+%package -n %{libname}_pulse_sink
 Summary: Pulseaudio output backend for %{name}
 Group:   Development/Libraries
-Provides: libakode_pulse_sink = %{version}-%{release}
+
 Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
 
-%description -n %{libakode}_pulse_sink
+%description -n %{libname}_pulse_sink
 This package contains the pulseaudio backend for Akode.
 Recommended for network transparent audio.
 
-%files -n %{libakode}_pulse_sink
+%files -n %{libname}_pulse_sink
 %defattr(-,root,root,-)
 %{_libdir}/libakode_pulse_sink.la
 %{_libdir}/libakode_pulse_sink.so
 
-%post -n %{libakode}_pulse_sink
-/sbin/ldconfig
-
-%postun -n %{libakode}_pulse_sink
-/sbin/ldconfig
 
 ##########
 
 # Packaged separately to keep main/core %{akode} package LGPL-clean.
-%package -n %{libakode}_src_resampler
+%package -n %{libname}_src_resampler
 Summary: Resampler based on libsamplerate for %{name}
 Group:   Development/Libraries
-Provides: libakode_src_resampler = %{version}-%{release}
+
 Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
 
-%description -n %{libakode}_src_resampler 
+%description -n %{libname}_src_resampler 
 This package contains the samplerate decoder for Akode.
 
-%files -n %{libakode}_src_resampler
+%files -n %{libname}_src_resampler
 %defattr(-,root,root,-)
 %{_libdir}/libakode_src_resampler.la
 %{_libdir}/libakode_src_resampler.so
 
-%post -n %{libakode}_src_resampler
-/sbin/ldconfig
-
-%postun -n %{libakode}_src_resampler 
-/sbin/ldconfig
 
 ##########
 
-%package -n %{libakode}_mpeg_decoder
+%package -n %{libname}_mpeg_decoder
 Summary: Decoder based on libmad for %{name}
 Group:   Development/Libraries
-Provides: libakode_mpeg_decoder = %{version}-%{release}
+
 Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
 
-%description -n %{libakode}_mpeg_decoder 
+%description -n %{libname}_mpeg_decoder 
 This package contains the mad decoder for Akode.
 
-%files -n %{libakode}_mpeg_decoder
+%files -n %{libname}_mpeg_decoder
 %defattr(-,root,root,-)
 %{_libdir}/libakode_mpeg_decoder.la
 %{_libdir}/libakode_mpeg_decoder.so
 
-%post -n %{libakode}_mpeg_decoder
+%post -n %{libname}_mpeg_decoder
 /sbin/ldconfig
 
-%postun -n %{libakode}_mpeg_decoder 
+%postun -n %{libname}_mpeg_decoder 
 /sbin/ldconfig
 
 
