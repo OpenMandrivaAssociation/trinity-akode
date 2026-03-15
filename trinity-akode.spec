@@ -120,11 +120,11 @@ aKode also has the following audio outputs:
 %package -n %{devname}
 Summary: Headers for developing programs that will use %{name} 
 Group:   Development/Libraries
-Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
-%{?with_jack:Requires: %{libname}_jack_sink = %{?epoch:%{epoch}:}%{version}-%{release}}
-%{?with_pulseaudio:Requires: %{libname}_pulse_sink = %{?epoch:%{epoch}:}%{version}-%{release}}
-%{?with_libsamplerate:Requires: %{libname}_src_resampler = %{?epoch:%{epoch}:}%{version}-%{release}}
-%{?with_libmad:Requires: %{libname}_mpeg_decoder  = %{?epoch:%{epoch}:}%{version}-%{release}}
+Requires: %{name} = %{EVRD}
+%{?with_jack:Requires: %{libname}_jack_sink = %{EVRD}}
+%{?with_pulseaudio:Requires: %{libname}_pulse_sink = %{EVRD}}
+%{?with_libsamplerate:Requires: %{libname}_src_resampler = %{EVRD}}
+%{?with_libmad:Requires: %{libname}_mpeg_decoder  = %{EVRD}}
 Requires: pkgconfig
 
 %description -n %{devname}
@@ -145,7 +145,7 @@ It is needed if you intend to build an application linked against Akode.
 Summary: Jack audio output backend for %{name}
 Group:   Development/Libraries
 
-Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires: %{name} = %{EVRD}
 
 %description -n %{libname}_jack_sink
 This package contains the Jack audio output backend for Akode.
@@ -162,7 +162,7 @@ This package contains the Jack audio output backend for Akode.
 Summary: Pulseaudio output backend for %{name}
 Group:   Development/Libraries
 
-Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires: %{name} = %{EVRD}
 
 %description -n %{libname}_pulse_sink
 This package contains the pulseaudio backend for Akode.
@@ -181,7 +181,7 @@ Recommended for network transparent audio.
 Summary: Resampler based on libsamplerate for %{name}
 Group:   Development/Libraries
 
-Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires: %{name} = %{EVRD}
 
 %description -n %{libname}_src_resampler 
 This package contains the samplerate decoder for Akode.
@@ -198,7 +198,7 @@ This package contains the samplerate decoder for Akode.
 Summary: Decoder based on libmad for %{name}
 Group:   Development/Libraries
 
-Requires: %{name} = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires: %{name} = %{EVRD}
 
 %description -n %{libname}_mpeg_decoder 
 This package contains the mad decoder for Akode.
@@ -207,13 +207,6 @@ This package contains the mad decoder for Akode.
 %defattr(-,root,root,-)
 %{_libdir}/libakode_mpeg_decoder.la
 %{_libdir}/libakode_mpeg_decoder.so
-
-%post -n %{libname}_mpeg_decoder
-/sbin/ldconfig
-
-%postun -n %{libname}_mpeg_decoder 
-/sbin/ldconfig
-
 
 %install -a
 # rpmdocs
