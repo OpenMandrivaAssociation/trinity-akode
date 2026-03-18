@@ -5,7 +5,6 @@
 %bcond libmad 1
 
 # TDE variables
-%define tde_epoch 2
 %if "%{?tde_version}" == ""
 %define tde_version 14.1.5
 %endif
@@ -13,7 +12,6 @@
 %define tde_pkg akode
 
 %define libname %mklibname %{tde_pkg}
-%define devname %mklibname %{tde_pkg} -d
 
 %undefine __brp_remove_la_files
 %define dont_remove_libtool_files 1
@@ -25,7 +23,6 @@
 %define tarball_name %{tde_pkg}-trinity
 
 Name:		trinity-%{tde_pkg}
-Epoch:		%{tde_epoch}
 Version:	2.0.2
 Release:	%{?tde_version:%{tde_version}_}5
 Summary: 	Audio-decoding framework
@@ -117,7 +114,7 @@ aKode also has the following audio outputs:
 
 ##########
 
-%package -n %{devname}
+%package devel
 Summary: Headers for developing programs that will use %{name} 
 Group:   Development/Libraries
 Requires: %{name} = %{EVRD}
@@ -127,11 +124,11 @@ Requires: %{name} = %{EVRD}
 %{?with_libmad:Requires: %{libname}_mpeg_decoder  = %{EVRD}}
 Requires: pkgconfig
 
-%description -n %{devname}
+%description devel
 This package contains the development files for Akode.
 It is needed if you intend to build an application linked against Akode.
 
-%files -n %{devname}
+%files devel
 %defattr(-,root,root,-)
 %{_bindir}/akode-config
 %{_includedir}/*
