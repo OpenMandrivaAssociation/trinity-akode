@@ -5,10 +5,6 @@
 %bcond libmad 1
 
 # TDE variables
-%if "%{?tde_version}" == ""
-%define tde_version 14.1.5
-%endif
-
 %define tde_pkg akode
 
 %define libname %mklibname %{tde_pkg}
@@ -18,13 +14,13 @@
 %define _disable_rebuild_configure 1
 
 # fixes error: Empty %files file …/debugsourcefiles.list
-%define _debugsource_template %{nil}
+%undefine _debugsource_template
 
 %define tarball_name %{tde_pkg}-trinity
 
 Name:		trinity-%{tde_pkg}
-Version:	2.0.2
-Release:	%{?tde_version:%{tde_version}_}5
+Version:	14.1.6
+Release:	1
 Summary: 	Audio-decoding framework
 Group: 		System Environment/Libraries
 URL:		http://www.kde-apps.org/content/show.php?content=30375
@@ -32,7 +28,7 @@ URL:		http://www.kde-apps.org/content/show.php?content=30375
 
 License:	GPLv2+
 
-Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{tde_version}/main/dependencies/%{tarball_name}-%{tde_version}.tar.xz
+Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{version}/main/dependencies/%{tarball_name}-%{version}.tar.xz
 
 BuildSystem:  cmake
 
@@ -50,7 +46,7 @@ BuildOption:  -DWITH_MPEG_DECODER=%{!?with_libmad:OFF}%{?with_libmad:ON}
 BuildOption:  -DWITH_JACK_SINK=%{!?with_jack:OFF}%{?with_jack:ON}
 BuildOption:  -DWITH_PULSE_SINK=%{!?with_pulseaudio:OFF}%{?with_pulseaudio:ON}
 
-BuildRequires:	trinity-tde-cmake >= %{tde_version}
+BuildRequires:	trinity-tde-cmake >= %{version}
 
 %{!?with_clang:BuildRequires:  gcc-c++}
 
@@ -58,7 +54,7 @@ BuildRequires:	libtool
 
 # TQT support
 BuildRequires:	pkgconfig(tqt)
-BuildRequires:	trinity-filesystem >= %{tde_version}
+BuildRequires:	trinity-filesystem >= %{version}
 
 # FLAC support
 BuildRequires:  pkgconfig(flac)
